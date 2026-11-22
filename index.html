@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student Well-being Predictor</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+  <header class="mb-8 max-w-2xl">
+    <h1 class="serif text-3xl sm:text-4xl font-semibold leading-tight">How might a student's habits relate to their mental well-being?</h1>
+    <p class="mt-3 text-[1.02rem]" style="color:var(--muted)">Enter a daily routine and the model estimates a mental health score from 1 to 10. It's a pattern from survey data, not a diagnosis.</p>
+  </header>
+
+  <div class="grid lg:grid-cols-[1.35fr_1fr] gap-6 items-start">
+    <!-- FORM -->
+    <section class="card p-5 sm:p-7">
+      <div class="mb-6">
+        <div class="text-sm font-semibold mb-2">Try a sample profile</div>
+        <div class="flex flex-wrap gap-2" id="presets"></div>
+      </div>
+
+      <form id="form" novalidate class="grid gap-5">
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div class="field"><label for="age">Age</label><input class="inp" id="age" type="number" min="10" max="100" step="1"></div>
+          <div class="field"><span class="lbl" id="gender-l">Gender</span><div class="seg" id="gender" role="radiogroup" aria-labelledby="gender-l"></div></div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div class="field">
+            <label for="country">Country</label>
+            <select class="inp" id="country"></select>
+            <input class="inp hidden mt-2" id="countryCustom" type="text" placeholder="Type your country" aria-label="Custom country name">
+          </div>
+          <div class="field"><label for="academic_level">Academic level</label><select class="inp" id="academic_level"></select></div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div class="field"><label for="most_used_platform">Most used platform</label><select class="inp" id="most_used_platform"></select></div>
+          <div class="field"><span class="lbl" id="purpose-l">Main purpose of use</span><div class="seg" id="purpose_of_use" role="radiogroup" aria-labelledby="purpose-l"></div></div>
+        </div>
+
+        <hr style="border-color:var(--line)">
+
+        <div id="sliders" class="grid gap-5"></div>
+
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div class="field"><label for="daily_unlocks">Phone unlocks per day</label><input class="inp" id="daily_unlocks" type="number" min="0" step="1"></div>
+          <div class="field"><span class="lbl" id="stress-l">Stress level</span><div class="seg" id="stress_level" role="radiogroup" aria-labelledby="stress-l"></div></div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 pt-2">
+          <button type="submit" id="submit" class="btn btn-primary flex-1 sm:flex-none">Predict score</button>
+          <button type="button" id="reset" class="btn btn-ghost">Reset form</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- RESULT -->
+    <aside class="lg:sticky lg:top-6 grid gap-4" aria-live="polite">
+      <div id="error" class="hidden rounded-2xl p-4 text-sm leading-relaxed" role="alert" style="background:var(--rose-soft);border:1px solid #f0bcc4"></div>
+
+      <div class="card p-6" id="resultCard">
+        <div id="empty" class="text-center py-10" style="color:var(--muted)">
+          <svg viewBox="0 0 200 110" class="w-48 mx-auto mb-4 opacity-60"><path class="arc" style="stroke:var(--line)" d="M20 100 A80 80 0 0 1 180 100"/></svg>
+          <p>Fill in the form or pick a sample profile, then choose <b style="color:var(--ink)">Predict score</b>.</p>
+        </div>
+
+        <div id="loading" class="hidden text-center py-14">
+          <div class="spinner mx-auto"></div>
+          <p class="mt-4" style="color:var(--muted)">Asking the model…</p>
+        </div>
+
+        <div id="result" class="hidden">
+          <svg viewBox="0 0 200 118" class="w-full max-w-[19rem] mx-auto block" role="img" id="gaugeSvg">
+            <path class="arc" style="stroke:var(--line)" d="M20 100 A80 80 0 0 1 180 100" pathLength="100"/>
+            <path id="arcFill" class="arc" d="M20 100 A80 80 0 0 1 180 100" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+            <text x="20" y="116" font-size="9" fill="#667085" text-anchor="middle">1</text>
+            <text x="180" y="116" font-size="9" fill="#667085" text-anchor="middle">10</text>
+            <text id="scoreText" x="100" y="92" text-anchor="middle" class="serif" font-size="40" font-weight="600" fill="#1e2433">–</text>
+          </svg>
+          <div class="text-center mt-1"><span id="badge" class="badge"></span></div>
+          <p id="badgeText" class="text-center text-sm mt-3" style="color:var(--muted)"></p>
+          <div class="mt-5">
+            <h2 class="text-sm font-semibold mb-2">What stands out in this routine</h2>
+            <div id="insights" class="grid gap-2"></div>
+          </div>
+          <p class="text-xs mt-5" style="color:var(--muted)">This is an estimate from patterns in survey data and isn't medical advice. If you're struggling, talking with a counsellor or doctor can help.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
